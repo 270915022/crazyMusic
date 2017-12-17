@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd crazyMusic_web/src/main/resources/dubbo.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<!-- 生成远程服务接口配置 -->
+	<dubbo:reference interface="com.crazyMusic.user.IUserService" id="userService" check="false" url="dubbo://${zookeeper.url}:${dubbox.mall.port}" />
+	<dubbo:reference interface="com.crazyMusic.mall.IMallService" id="mallService" check="false" url="dubbo://${zookeeper.url}:${dubbox.mall.port}" />
+	<dubbo:reference interface="com.crazyMusic.mall.IOrderService" id="orderService" check="false" url="dubbo://${zookeeper.url}:${dubbox.mall.port}" />
+	
+</beans>

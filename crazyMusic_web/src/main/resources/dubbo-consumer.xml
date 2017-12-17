@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd crazyMusic_web/src/main/resources/dubbo.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+    <!-- 引入配置文件 -->
+    <context:property-placeholder location="classpath:config.properties" />
+	
+	<!-- 消费服务名称 -->
+    <dubbo:application  name="${dubbox.application}" owner="programmer" organization="dubbo"  />
+	
+	<!-- zookeeper注册中心  zookeeper://192.168.1.111:2181 -->
+    <dubbo:registry timeout="${dubbox.timeout}" address="${dubbox.registry.address}"/>
+    
+    <!-- 扫描dubbox注解位置 -->
+    <dubbo:annotation package="com.crazyMusic" />
+    
+    <!-- kryo实现序列化  -->
+    <!-- <dubbo:protocol name="dubbo" port="${dubbox.port}" /> -->
+
+	<!-- 生成远程服务接口配置 -->
+	<dubbo:reference interface="com.crazyMusic.user.IUserService" id="userService" check="false" url="dubbo://${zookeeper.url}:${dubbox.user.port}" />
+	<dubbo:reference interface="com.crazyMusic.user.ICouponService" id="couponService" check="false" url="dubbo://${zookeeper.url}:${dubbox.user.port}" />
+	<dubbo:reference interface="com.crazyMusic.mall.IMallService" id="mallService" check="false" url="dubbo://${zookeeper.url}:${dubbox.mall.port}" />
+	<dubbo:reference interface="com.crazyMusic.mall.IOrderService" id="orderService" check="false" url="dubbo://${zookeeper.url}:${dubbox.mall.port}" />
+	<dubbo:reference interface="com.crazyMusic.pay.IPayService" id="payService" check="false" url="dubbo://${zookeeper.url}:${dubbox.pay.port}" />
+	<dubbo:reference interface="com.crazyMusic.community.ICommunityService" id="communityService" check="false" url="dubbo://${zookeeper.url}:${dubbox.community.port}" />
+	<dubbo:reference interface="com.crazyMusic.msg.IMsgService" id="msgService" check="false" url="dubbo://${zookeeper.url}:${dubbox.msg.port}" />
+	
+</beans>
