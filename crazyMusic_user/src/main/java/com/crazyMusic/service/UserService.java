@@ -30,10 +30,15 @@ public class UserService extends ServiceResult implements IUserService{
 
 	@Override
 	public ServiceResult login(JSONObject paramJSON) throws Exception {
+		int count = userDao.getCount("select id from user where phone = ?", paramJSON.getString("phone"));
+		if(count <= 0) {
+			return getFailResult("当前手机号未注册。");
+		}
+		
 		JSONObject json = userDao.queryForJsonObject("select * from user where phone = ? and password = ? and status = 1 ", paramJSON.getString("phone"),paramJSON.getString("password"));
 		//先做简单的 用户名或密码错误
 		if(json == null || json.isEmpty()){
-			return getFailResult("用户名或密码错误！");
+			return getFailResult("手机号或密码不正确！");
 		}
 		User user = User.jsonToUser(json);
 		//登陆成功 修改用户最后一次登陆时间
@@ -276,4 +281,22 @@ public class UserService extends ServiceResult implements IUserService{
 				+ " left join skilled sk on us.skilled_id = sk.id where us.user_id = ? ",getCurrentUserId(paramJson));
 		return getSuccessResult(jsonList);
 	}
+	
+	/**
+	 * 申请成为老师
+	 */
+	@Override
+	public ServiceResult applyTeacher(JSONObject paramJSON) throws Exception {
+		String currentUserId = getCurrentUserId(paramJSON);
+		String card_back = paramJSON.getString("card_back");//身份证背面
+		String card_front = paramJSON.getString("card_front");//身份证正面
+		String longevity = paramJSON.getString("longevity");//资历证书集合
+		int execute = userDao.execute("insert into user_teacher_longevity (id,card_back,card_front,longevity,user_id,create_date,state) values (?,?,?,?,?,?,?) ",
+				userDao.generateKey(),card_back,card_front,longevity,currentUserId,new Date(),0);
+		if(execute <= 0 ) {
+			return getFailResult(Const.SYSTEM_BUSY);
+		}
+		return getSuccessResult();
+	}
+	
 }
