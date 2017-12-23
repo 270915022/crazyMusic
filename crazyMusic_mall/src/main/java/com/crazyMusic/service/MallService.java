@@ -36,13 +36,13 @@ public class MallService extends ServiceResult implements IMallService{
 	public ServiceResult getList(JSONObject jsonParam) throws Exception {
 		String where = " where 1 = 1 ";
 		List<String> paramList = new ArrayList<>();
-		String sql = "select id,name,cost_price,300 as buy_count,post_fee from product ";
+		String sql = "select id,name,cost_price,post_fee from product ";
 		PageBean pageBean = null;
 		if(jsonParam != null) {
 			int pageIndex = jsonParam.getIntValue("pageIndex");
 			int pageSize = jsonParam.getIntValue("pageSize");
 			//商品列表 搜索
-			String typeId = jsonParam.getString("typeId");
+			String typeId = jsonParam.getString("typeId"); 
 			if(StringUtils.isNotBlank(typeId)) {//类型搜索
 				paramList.add(typeId);
 				List<JSONObject> childTypeIds = mallDao.queryForJsonList("select id from product_type where parent_id = ?", typeId);
@@ -57,8 +57,8 @@ public class MallService extends ServiceResult implements IMallService{
 				where += in + ")";
 			}
 			if(StringUtils.isNotEmpty(jsonParam.getString("searchKey"))) {//搜索关键字
-				where += " name like %?% ";
-				paramList.add(jsonParam.getString("searchKey"));
+				where += " and name like ? ";
+				paramList.add("%"+jsonParam.getString("searchKey")+"%");
 			}
 			where += " and publish_state = 1 and del_flag = 1 ";
 			if(pageIndex != 0 && pageSize != 0) {
@@ -146,7 +146,7 @@ public class MallService extends ServiceResult implements IMallService{
 			where+= " and parent_id = ?";
 			paramList.add(parent);
 		}
-		String sql = "select id,type_name from product_type " + where + " order by sort asc";
+		String sql = "select id,type_name,type_pic from product_type " + where + " order by sort asc";
 		List<JSONObject> typeList = mallDao.queryForJsonList(sql,paramList.toArray(new String[] {}));
 		return getSuccessResult(typeList);
 	}
