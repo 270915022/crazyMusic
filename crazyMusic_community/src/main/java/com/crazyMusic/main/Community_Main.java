@@ -4,6 +4,6 @@ import java.io.IOException;
 
 public class Community_Main {
 	public static void main(String[] args) throws IOException {
-		com.alibaba.dubbo.container.Main.main(args); 
+		com.alibaba.dubbo.container.Main.main(args);  
 	}
 }
