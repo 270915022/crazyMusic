@@ -129,7 +129,12 @@ public interface IUserService {
 	 */
 	public ServiceResult getUserById(JSONObject paramJSON) throws Exception;
 	
-	
-	
+	/**
+	 * 用户申请成为老师
+	 * @param paramJSON
+	 * @return
+	 * @throws Exception
+	 */
+	public ServiceResult applyTeacher(JSONObject paramJSON) throws Exception;
 	
 }
