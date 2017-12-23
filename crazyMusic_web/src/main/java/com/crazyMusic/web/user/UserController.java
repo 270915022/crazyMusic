@@ -383,6 +383,32 @@ public class UserController extends BaseController{
 		ResponseUtils.putRSAJsonResponse(response, resultJSON);
 	}
 	
+	/**
+	 * 申请成为老师
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping("/applyTeacher")
+	@ResponseBody
+	public void applyTeacher(HttpServletRequest request, HttpServletResponse response) {
+		JSONObject resultJSON = new JSONObject();
+		try {
+			JSONObject paramJson = getAesJsonParams(request);
+			getCurrentUserIdAndPut(paramJson);
+			if(!checkParams(paramJson, "card_back","card_front","longevity")) {
+				resultJSON = getFailJSON(Const.PARAM_ERROR);
+				ResponseUtils.putRSAJsonResponse(response, resultJSON);
+				return;
+			}
+			ServiceResult serviceResult = userService.applyTeacher(paramJson);
+			resultJSON = serviceToResult(serviceResult);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultJSON = getFailJSON(Const.SYSTEM_BUSY);
+		}
+		ResponseUtils.putRSAJsonResponse(response, resultJSON);
+	}
+	
 	
 	/**
 	 * 获取注册验证码

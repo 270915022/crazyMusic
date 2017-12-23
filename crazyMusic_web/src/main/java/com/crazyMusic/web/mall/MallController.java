@@ -48,7 +48,7 @@ public class MallController extends BaseController{
 	
 	
 	/**
-	 * 商品列表详情
+	 * 商品列表
 	 * @param request
 	 * @param response
 	 */
@@ -70,7 +70,7 @@ public class MallController extends BaseController{
 	
 	
 	/**
-	 * 商品列表详情
+	 * 商品类型列表
 	 * @param request
 	 * @param response
 	 */
