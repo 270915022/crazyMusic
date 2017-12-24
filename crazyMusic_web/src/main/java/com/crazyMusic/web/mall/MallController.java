@@ -70,6 +70,29 @@ public class MallController extends BaseController{
 	
 	
 	/**
+	 * 商品类型列表所有
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping("/productTypeListAll")
+	@ResponseBody
+	public void productTypeListAll(HttpServletRequest request, HttpServletResponse response) {
+		JSONObject resultJSON = new JSONObject();
+		try {
+			JSONObject paramJSON = getAesJsonParams(request);
+			ServiceResult serviceResult = mallService.listTypeAll(paramJSON);
+			resultJSON = serviceToResultList(serviceResult);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error(e.getMessage());
+			resultJSON = getFailJSON(Const.SYSTEM_BUSY);
+		}
+		ResponseUtils.putRSAJsonResponse(response, resultJSON);
+	}
+	
+	
+	
+	/**
 	 * 商品类型列表
 	 * @param request
 	 * @param response
