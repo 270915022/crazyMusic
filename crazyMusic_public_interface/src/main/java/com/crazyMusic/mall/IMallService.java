@@ -39,6 +39,15 @@ public interface IMallService {
 	
 	
 	/**
+	 * 通过条件获取商品类型所有
+	 * @param jsonParam
+	 * @return
+	 * @throws Exception
+	 */
+	public ServiceResult listTypeAll(JSONObject jsonParam) throws Exception;
+	
+	
+	/**
 	 * 加入购物车
 	 */
 	public boolean joinCard(JSONObject jsonParam) throws Exception;
