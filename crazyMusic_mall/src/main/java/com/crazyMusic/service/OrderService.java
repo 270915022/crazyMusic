@@ -96,7 +96,7 @@ public class OrderService extends ServiceResult implements IOrderService{
 	@Transactional(rollbackFor = Exception.class)
 	@SuppressWarnings("all")
 	public ServiceResult createOrder(JSONObject paramJSON) throws Exception {
-		String userId = paramJSON.getString("userId");
+		String userId = getCurrentUserId(paramJSON);
 		String productId = paramJSON.getString("productId");
 		if(StringUtils.isEmpty(userId) || StringUtils.isEmpty(productId)) {
 			logger.error("创建订单失败！传入userId 或者 productId 为空！");
@@ -120,7 +120,7 @@ public class OrderService extends ServiceResult implements IOrderService{
 		}
 	
 		BigDecimal payment = paramJSON.getBigDecimal("payment");//支付金额
-		BigDecimal postFee = Const.POST_FEE;//邮费
+		BigDecimal postFee = paramJSON.getBigDecimal("postFee");//邮费
 		int pay_status = Const.ORDER_STATE_NOTPAY;//未付款
 		String buyer_message = paramJSON.getString("buyerMessage");//买家留言
 		String buyer_nick = paramJSON.getString("buyerNick");//买家昵称留言
@@ -193,7 +193,7 @@ public class OrderService extends ServiceResult implements IOrderService{
 		}
 		JSONObject orderObj = new JSONObject();
 		orderObj.put("order_id",orderId);
-		return getFailResult(orderObj);
+		return getSuccessResult(orderObj);
 	}
 
 	/**

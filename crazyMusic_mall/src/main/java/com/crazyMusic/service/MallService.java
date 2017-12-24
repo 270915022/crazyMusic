@@ -186,7 +186,7 @@ public class MallService extends ServiceResult implements IMallService{
 			int expireMin = Const.CARD_EXPIRE_TIMEOUT;
 			long currentTimeMillis = System.currentTimeMillis();
 			mallDao.execute("update card set state = 0 where create_date < ? ", new Date(currentTimeMillis-(expireMin*60*1000)));
-			List<JSONObject> cardList = mallDao.queryForJsonList("select id,product_id,number,product_attr_ids,product_img,product_name,payment from card  where create_date > ? and user_id = ?",new Date(currentTimeMillis-(expireMin*60*1000)),userId);
+			List<JSONObject> cardList = mallDao.queryForJsonList("select id,product_id,number,product_attr_ids,product_img,product_name,payment,state from card where user_id = ?",userId);
 			if(CollectionUtils.isNotEmpty(cardList)) {
 				for (JSONObject card : cardList) {
 					String product_attrs = card.getString("product_attr_ids");
@@ -278,6 +278,10 @@ public class MallService extends ServiceResult implements IMallService{
 	@Override
 	public ServiceResult collectAdd(JSONObject jsonParam) throws Exception {
 		String currentUserId = getCurrentUserId(jsonParam);
+		int count = mallDao.getCount("select id from product_collect where user_id = ? and product_id = ?", currentUserId,jsonParam.getString("product_id"));
+		if(count > 0) {
+			return getFailResult("您已收藏过该商品，不能重复收藏");
+		}
 		int execute = mallDao.execute("insert into product_collect (id,user_id,product_id,create_date) values (?,?,?,?)", 
 				mallDao.generateKey(),currentUserId,jsonParam.getString("product_id"),new Date());
 		if(execute <= 0) {
