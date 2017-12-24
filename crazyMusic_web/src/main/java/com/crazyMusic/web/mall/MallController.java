@@ -105,7 +105,8 @@ public class MallController extends BaseController{
 		try {
 			JSONObject paramJSON = getAesJsonParams(request);
 			if (StringUtils.isEmpty(paramJSON.getString("productId"))) {
-				resultJSON = getFailJSON("商品ID不能为空！");
+				resultJSON = getFailJSON(Const.PARAM_ERROR);
+				ResponseUtils.putRSAJsonResponse(response, resultJSON);
 				return ;
 			}
 			JSONObject productDetailData = mallService.productDetail(paramJSON);

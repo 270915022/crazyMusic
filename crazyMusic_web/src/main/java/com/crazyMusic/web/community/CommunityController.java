@@ -53,7 +53,7 @@ public class CommunityController extends BaseController{
 	}
 	
 	/**
-	 * 社区修改
+	 * 帖子修改
 	 * @param request
 	 * @param response
 	 */
