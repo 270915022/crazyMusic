@@ -113,6 +113,7 @@ public interface IUserService {
 	 * @return
 	 * @throws Exception
 	 */
+	@Transactional
 	public ServiceResult setUserConfirmDefaultAddr(JSONObject paramJSON) throws Exception;
 	
 	
