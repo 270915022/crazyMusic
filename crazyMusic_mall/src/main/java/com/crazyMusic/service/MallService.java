@@ -2,6 +2,7 @@ package com.crazyMusic.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -150,6 +151,41 @@ public class MallService extends ServiceResult implements IMallService{
 		List<JSONObject> typeList = mallDao.queryForJsonList(sql,paramList.toArray(new String[] {}));
 		return getSuccessResult(typeList);
 	}
+	/**
+	 * 所有类型列表
+	 */
+	@Override
+	public ServiceResult listTypeAll(JSONObject jsonParam) throws Exception {
+		String sql = "select id,type_name,type_pic,parent_id from product_type order by sort asc";
+		List<JSONObject> typeList = mallDao.queryForJsonList(sql,null);
+		List<JSONObject> parentTypeList = new ArrayList<JSONObject>();
+		if(CollectionUtils.isNotEmpty(typeList)) {
+			Iterator<JSONObject> typeIt = typeList.iterator();
+			while(typeIt.hasNext()) {
+				JSONObject type = typeIt.next();
+				if(StringUtils.isEmpty(type.getString("parent_id")) || type.getString("parent_id").equals("0")) {
+					parentTypeList.add(type);
+					typeIt.remove();
+				}
+			}
+			if(CollectionUtils.isNotEmpty(parentTypeList)) {
+				for (JSONObject pType : parentTypeList) {
+					if(pType.getObject("childList", List.class) == null) {
+						pType.put("childList", new ArrayList<JSONObject>());
+					}
+					for (JSONObject childType : typeList) {
+						if(childType.getString("parent_id").equals(pType.getString("id"))) {
+							pType.getObject("childList", List.class).add(childType);
+						}
+					}
+				}
+				
+			}
+		}
+		return getSuccessResult(parentTypeList);
+	}
+	
+	
 	
 	/**
 	 * 加入购物车
