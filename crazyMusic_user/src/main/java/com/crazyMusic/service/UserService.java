@@ -161,7 +161,7 @@ public class UserService extends ServiceResult implements IUserService{
 	 */
 	@Override
 	public ServiceResult skilledList(JSONObject paramJson) throws Exception {
-		List<JSONObject> skilledList = userDao.queryForJsonList("select * from skilled where enable = 1 ");
+		List<JSONObject> skilledList = userDao.queryForJsonList("select id,name from skilled where enable = 1 ");
 		return getSuccessResult(skilledList);
 	}
 	
@@ -206,15 +206,16 @@ public class UserService extends ServiceResult implements IUserService{
 		String district_code = paramJSON.getString("district_code");
 		String name = paramJSON.getString("name");
 		String phone = paramJSON.getString("phone");
+		String addr_detail = paramJSON.getString("addr_detail");
 		String region_id = paramJSON.getString("region_id");
 		int result = 0;
 		if(StringUtils.isEmpty(region_id)) {
-			 result = userDao.execute("insert into user_confirm_addr (id,user_id,province,province_code,city,city_code,district,district_code,create_date,name,phone)"
-			 		+ " values (?,?,?,?,?,?,?,?,?,?,?)",
-					userDao.generateKey(),currentUserId,province,province_code,city,city_code,district,district_code,new Date(),name,phone);
+			 result = userDao.execute("insert into user_confirm_addr (id,user_id,province,province_code,city,city_code,district,district_code,addr_detail,is_default,create_date,name,phone)"
+			 		+ " values (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+					userDao.generateKey(),currentUserId,province,province_code,city,city_code,district,district_code,addr_detail,0,new Date(),name,phone);
 		}else {
-			result = userDao.execute("update user_confirm_addr set province=?,province_code=?,city=?,city_code=?,district=?,district_code=?,name=?,phone=? where id = ?", 
-					province,province_code,city,city_code,district,district_code,name,phone,region_id);
+			result = userDao.execute("update user_confirm_addr set province=?,province_code=?,city=?,city_code=?,district=?,district_code=?,addr_detail=?,name=?,phone=? where id = ?", 
+					province,province_code,city,city_code,district,district_code,addr_detail,name,phone,region_id);
 		}
 		if(result <= 0) {
 			return getFailResult(Const.SYSTEM_BUSY);
@@ -228,7 +229,7 @@ public class UserService extends ServiceResult implements IUserService{
 	@Override
 	public ServiceResult getUserConfirmAddrs(JSONObject paramJSON) throws Exception {
 		String currentUserId = getCurrentUserId(paramJSON);
-		List<JSONObject> regionListJSON = userDao.queryForJsonList("select * from user_confirm_addr where user_id = ? order by create_date desc",currentUserId);
+		List<JSONObject> regionListJSON = userDao.queryForJsonList("select id,province,province_code,city,city_code,district,district_code,addr_detail,name,phone,is_default from user_confirm_addr where user_id = ? order by create_date desc",currentUserId);
 		return getSuccessResult(regionListJSON);
 	}
 	
@@ -237,7 +238,7 @@ public class UserService extends ServiceResult implements IUserService{
 	 */
 	@Override
 	public ServiceResult getUserDefaulAddr(JSONObject paramJSON) throws Exception {
-		JSONObject defaultRegion = userDao.queryForJsonObject("select * from user_confirm_addr where user_id = ? and is_default = 1",getCurrentUserId(paramJSON));
+		JSONObject defaultRegion = userDao.queryForJsonObject("select id,province,province_code,city,city_code,district,district_code,addr_detail,name,phone from user_confirm_addr where user_id = ? and is_default = 1",getCurrentUserId(paramJSON));
 		return getSuccessResult(defaultRegion);
 	}
 	
@@ -259,6 +260,7 @@ public class UserService extends ServiceResult implements IUserService{
 	 * 设置默认收货地址
 	 */
 	@Override
+	@Transactional
 	public ServiceResult setUserConfirmDefaultAddr(JSONObject paramJSON) throws Exception {
 		String currentUserId = getCurrentUserId(paramJSON);
 		String region_id = paramJSON.getString("region_id");
@@ -277,7 +279,7 @@ public class UserService extends ServiceResult implements IUserService{
 	 */
 	@Override
 	public ServiceResult mySkilledList(JSONObject paramJson) throws Exception {
-		List<JSONObject> jsonList = userDao.queryForJsonList("select * from user_skilled us "
+		List<JSONObject> jsonList = userDao.queryForJsonList("select sk.id,sk.name from user_skilled us "
 				+ " left join skilled sk on us.skilled_id = sk.id where us.user_id = ? ",getCurrentUserId(paramJson));
 		return getSuccessResult(jsonList);
 	}
@@ -291,6 +293,10 @@ public class UserService extends ServiceResult implements IUserService{
 		String card_back = paramJSON.getString("card_back");//身份证背面
 		String card_front = paramJSON.getString("card_front");//身份证正面
 		String longevity = paramJSON.getString("longevity");//资历证书集合
+		int count = userDao.getCount("select id from user_teacher_longevity where user_id = ? and state = 0", currentUserId);
+		if(count > 0) {
+			return getFailResult("您还有未审批的申请，请耐心等候~");
+		}
 		int execute = userDao.execute("insert into user_teacher_longevity (id,card_back,card_front,longevity,user_id,create_date,state) values (?,?,?,?,?,?,?) ",
 				userDao.generateKey(),card_back,card_front,longevity,currentUserId,new Date(),0);
 		if(execute <= 0 ) {

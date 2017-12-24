@@ -110,7 +110,7 @@ public class CoupService extends ServiceResult implements ICouponService{
 	 */
 	@Override
 	public ServiceResult randomGetCoupons(JSONObject paramJSON) throws Exception {
-		List<JSONObject> coupList = coupDao.queryForJsonList("select id,name,payment,chance,number,img from coupon where publish_date >= ? and number > 0",new Date());
+		List<JSONObject> coupList = coupDao.queryForJsonList("select id,name,payment,chance,number,img from coupon where publish_date<=? and publish_stop_date>=? and number > 0",new Date(),new Date());
 		List<JSONObject> needSendCuoups = new ArrayList<JSONObject>();
 		if(CollectionUtils.isNotEmpty(coupList)) {
 			Random r = new Random();
