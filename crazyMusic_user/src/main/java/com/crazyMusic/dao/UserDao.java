@@ -16,4 +16,5 @@ public class UserDao extends BaseJdbcDao{
 		list.add(jb);
 		return list;
 	};
+	
 }

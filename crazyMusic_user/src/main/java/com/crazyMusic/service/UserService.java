@@ -121,16 +121,28 @@ public class UserService extends ServiceResult implements IUserService{
 		if(StringUtils.isEmpty(currentUserId)) {
 			return getFailResult("用户编号不能为空！");
 		}
-		String head_img = paramJson.getString("head_img");
-		String sign = paramJson.getString("sign");
-		int sex = paramJson.getIntValue("sex");
-		String nick_name = paramJson.getString("nick_name");
-		
-		if(userDao.execute("update user set head_img = ?,sign = ?,nick_name=?,sex=? where id = ?",
-				head_img,sign,nick_name,sex,currentUserId) <= 0) {
+		ArrayList<Object> paramList = new ArrayList<>();
+		StringBuilder updateSql = new StringBuilder("update user set ");
+		if(paramJson.containsKey("head_img")) {
+			updateSql.append("head_img = ?,");
+		}
+		if(paramJson.containsKey("sign")) {
+			updateSql.append("sign = ?,");
+		}
+		if(paramJson.containsKey("sex")) {
+			updateSql.append("sex = ?,");
+		}
+		if(paramJson.containsKey("nick_name")) {
+			updateSql.append("nick_name = ?,");
+		}
+		updateSql.deleteCharAt(updateSql.lastIndexOf(","));
+		updateSql.append(" where id = ?");
+		userDao.keyNotNullAndAdd(paramJson, paramList, "head_img","sign","sex","nick_name");
+		paramList.add(currentUserId);
+		if(userDao.execute(updateSql.toString(),
+				paramList.toArray(new Object[] {})) <= 0) {
 			throw new RuntimeException("用户修改失败！");
 		};
-		
 		return getSuccessResult();
 	}
 	
