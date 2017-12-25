@@ -1,19 +1,18 @@
 package com.crazyMusic.web.user;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.alibaba.fastjson.JSONObject;
 import com.crazyMusic.common.util.TokenUtil;
 import com.crazyMusic.commonbean.User;
 import com.crazyMusic.constant.Const;
 import com.crazyMusic.constant.ServiceResult;
+import com.crazyMusic.exception.NullCurrentUserException;
 import com.crazyMusic.msg.IMsgService;
 import com.crazyMusic.user.IUserService;
 import com.crazyMusic.util.RandomUtil;
@@ -39,9 +38,11 @@ public class UserController extends BaseController{
 	
 	private Logger logger = Logger.getLogger(UserController.class);
 	//找回密码验证码前缀 
-	private String FWDCODEPREFIX = "FINDPWDCODE_";
+	private final String FWDCODEPREFIX = "FINDPWDCODE_";
 	//注册用户验证码前缀
-	private String REGISTCODEPREFIX = "REGISTCODE_";
+	private final String REGISTCODEPREFIX = "REGISTCODE_";
+	//redis当前用户前缀
+	private final String CURRENTUSERPREFIX = "TOKEN_CURRENTUSER_";
 	
 	
 	/**
@@ -112,8 +113,6 @@ public class UserController extends BaseController{
 	}
 	
 	
-	
-	
 	/**
 	 * 修改用户基本信息
 	 * @param request
@@ -128,7 +127,26 @@ public class UserController extends BaseController{
 			getCurrentUserIdAndPut(paramJson);
 			ServiceResult serviceResult = userService.updateUserInfo(paramJson);
 			resultJSON = serviceToResult(serviceResult);
-		} catch (Exception e) {
+			if(serviceResult.isSuccess()) {//成功后修改缓存信息
+				User cuser = getCurrentUserThrowIfNull(paramJson, jedisCluster);
+				if(paramJson.containsKey("head_img")) {
+					cuser.setHeadImg(paramJson.getString("head_img"));
+				}
+				if(paramJson.containsKey("sex")) {
+					cuser.setSex(paramJson.getIntValue("sex"));
+				}
+				if(paramJson.containsKey("sign")) {
+					cuser.setSign(paramJson.getString("sign"));
+				}
+				if(paramJson.containsKey("nick_name")) {
+					cuser.setSign(paramJson.getString("nick_name"));
+				}
+				refreshUserOfCache(getCurrentToken(paramJson),cuser);
+			}
+		}catch (NullCurrentUserException e) {
+			e.printStackTrace();
+			resultJSON = serviceToResult(e.exceptionToResult());
+		}catch (Exception e) {
 			e.printStackTrace();
 			resultJSON = getFailJSON(Const.SYSTEM_BUSY);
 		}
@@ -490,7 +508,7 @@ public class UserController extends BaseController{
 				User user = serviceResult.resultJSON.getObject("user", User.class);
 				String tokenId = loginSuccess(user);
 				JSONObject userJSON = user.userBasicInfoToMap();
-				userJSON.put("token", tokenId);
+				userJSON.put(Const.TOKEN, tokenId);
 				serviceResult.resultJSON = userJSON;
 			}
 			resultJSON = serviceToResultData(serviceResult);
@@ -510,9 +528,17 @@ public class UserController extends BaseController{
 		logger.info("用户请求登陆,手机号:"+user.getPhone());
 		String tokenId = TokenUtil.generyToken();
 		//加入redis缓存 
-		jedisCluster.set(tokenId.getBytes(),SerializeUtil.serialize(user));
+		jedisCluster.set((CURRENTUSERPREFIX+tokenId).getBytes(),SerializeUtil.serialize(user));
 		return tokenId;
 	}
+	
+	/**
+	 * 刷新缓存中的user
+	 */
+	private void refreshUserOfCache(String token,User user) {
+		jedisCluster.set((CURRENTUSERPREFIX+token).getBytes(),SerializeUtil.serialize(user));
+	}
+	
 	
 	/**
 	 * 登陆
@@ -536,7 +562,7 @@ public class UserController extends BaseController{
 				User user = result.resultJSON.getObject("user", User.class);
 				String tokenId = loginSuccess(user);
 				JSONObject userJSON = user.userBasicInfoToMap();
-				userJSON.put("token", tokenId);
+				userJSON.put(Const.TOKEN, tokenId);
 				result.resultJSON = userJSON;
 			}
 			resultJSON = serviceToResultData(result);

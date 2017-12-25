@@ -13,7 +13,11 @@ import com.crazyMusic.commonbean.PageBean;
 import com.crazyMusic.commonbean.User;
 import com.crazyMusic.constant.Const;
 import com.crazyMusic.constant.ServiceResult;
+import com.crazyMusic.exception.NullCurrentUserException;
 import com.crazyMusic.util.RequestUtils;
+import com.crazyMusic.util.SerializeUtil;
+
+import redis.clients.jedis.JedisCluster;
 
 public class BaseController {
 	
@@ -57,6 +61,10 @@ public class BaseController {
 		return jsonObj;
 	}
 	
+	public String getCurrentToken(JSONObject paramJSON) {
+		return paramJSON.getString(Const.TOKEN);
+	}
+	
 	public JSONObject getSucListJSON(List<JSONObject> dataList){
 		JSONObject jsonObj = getSuccessJSON(null);
 		jsonObj.put("data", dataList);
@@ -75,9 +83,36 @@ public class BaseController {
 	}
 	
 	
-	public User getCurrentUser(JSONObject paramJSON) {
-		return null;
+	protected User getCurrentUser(JSONObject paramJSON,JedisCluster jedisCluster) {
+		String currentUserId = getCurrentUserId(paramJSON);
+		if(StringUtils.isEmpty(currentUserId))
+			return null;
+		byte[] bs = jedisCluster.get(currentUserId.getBytes());
+		if(bs == null || bs.length == 0) {
+			return null;
+		}
+		User user = null;
+		try {
+			user = SerializeUtil.unserialize(bs,User.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return user;
 	}
+	
+	/**
+	 * 获取当前用户 如果为空抛异常
+	 * @return
+	 * @throws NullCurrentUserException 
+	 */
+	protected User getCurrentUserThrowIfNull(JSONObject paramJSON,JedisCluster jedisCluster) throws NullCurrentUserException {
+		User currentUser = getCurrentUser(paramJSON, jedisCluster);
+		if(currentUser == null) {
+			throw new NullCurrentUserException();
+		}
+		return currentUser;
+	}
+	
 	/**
 	 * 获取当前登录用户id
 	 * @param paramJSON
