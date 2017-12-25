@@ -391,5 +391,19 @@ public class BaseJdbcDao {
       });
     } 
     
-    
+    /**
+     * key如果不为空 就放入参数list
+     * @param paramJSON
+     * @param paramList
+     * @param keys
+     */
+    public void keyNotNullAndAdd(JSONObject paramJSON,List<Object> paramList,String ...keys) {
+		if(keys != null && keys.length > 0) {
+			for (String key : keys) {
+				if(paramJSON.containsKey(key)) {
+					paramList.add(paramJSON.get(key));
+				}
+			}
+		}
+	};
 }

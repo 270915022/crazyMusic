@@ -2,6 +2,7 @@ package com.crazyMusic.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
@@ -45,5 +46,27 @@ public class SerializeUtil {
   
         }  
         return null;  
+    }  
+    
+    
+    /** 
+     * 反序列化 
+     * @param <T>
+     *  
+     * @param bytes 
+     * @return 
+     * @throws IOException 
+     * @throws ClassNotFoundException 
+     */  
+    public static <T> T  unserialize(byte[] bytes,Class<T> clazz) throws Exception {  
+    	ByteArrayInputStream bais = null;
+		// 反序列化  
+		bais = new ByteArrayInputStream(bytes);  
+		ObjectInputStream ois = new ObjectInputStream(bais);  
+		Object readObject = ois.readObject();
+		if(clazz == readObject.getClass()) {
+			return (T)readObject;
+		}
+    	return null;  
     }  
 }
